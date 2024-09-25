@@ -8,6 +8,7 @@ import {
   OnEvent,
   Service,
 } from '@toeverything/infra';
+import { nanoid } from 'nanoid';
 import { distinctUntilChanged, map, skip } from 'rxjs';
 
 import type { UrlService } from '../../url';
@@ -39,6 +40,8 @@ export const AccountLoggedOut =
 @OnEvent(ApplicationStarted, e => e.onApplicationStart)
 @OnEvent(ApplicationFocused, e => e.onApplicationFocused)
 export class AuthService extends Service {
+  // a random state for login flow
+  private state = nanoid();
   session = this.framework.createEntity(AuthSession);
 
   constructor(
@@ -143,14 +146,24 @@ export class AuthService extends Service {
 
   async oauthPreflight(
     provider: OAuthProviderType,
-    client: string,
+    client: string | undefined,
+    oldClient = false,
     /** @deprecated*/ redirectUrl?: string
   ) {
     track.$.$.auth.signIn({ method: 'oauth', provider });
     try {
+      // generate a random state for login flow
+      this.state = nanoid();
+
       const res = await this.fetchService.fetch('/api/oauth/preflight', {
         method: 'POST',
-        body: JSON.stringify({ provider, redirect_uri: redirectUrl }),
+        body: JSON.stringify({
+          provider,
+          redirect_uri: redirectUrl,
+          client,
+          // only send state for new client login
+          state: oldClient ? undefined : this.state,
+        }),
         headers: {
           'content-type': 'application/json',
         },
@@ -158,18 +171,21 @@ export class AuthService extends Service {
 
       let { url } = await res.json();
 
-      // change `state=xxx` to `state={state:xxx,native:true}`
-      // so we could know the callback should be redirect to native app
-      const oauthUrl = new URL(url);
-      oauthUrl.searchParams.set(
-        'state',
-        JSON.stringify({
-          state: oauthUrl.searchParams.get('state'),
-          client,
-          provider,
-        })
-      );
-      url = oauthUrl.toString();
+      /** @deprecated old client compatibility */
+      if (oldClient) {
+        // change `state=xxx` to `state={state:xxx,native:true}`
+        // so we could know the callback should be redirect to native app
+        const oauthUrl = new URL(url);
+        oauthUrl.searchParams.set(
+          'state',
+          JSON.stringify({
+            state: oauthUrl.searchParams.get('state'),
+            client,
+            provider,
+          })
+        );
+        url = oauthUrl.toString();
+      }
 
       return url;
     } catch (e) {
@@ -178,6 +194,26 @@ export class AuthService extends Service {
         provider,
         reason: e instanceof BackendError ? e.originError.type : 'unknown',
       });
+      throw e;
+    }
+  }
+
+  async signInOauthToken(token: string, provider: string) {
+    try {
+      const res = await this.fetchService.fetch('/api/oauth/callback', {
+        method: 'POST',
+        body: JSON.stringify({ token, state: this.state }),
+        headers: {
+          'content-type': 'application/json',
+        },
+      });
+
+      this.session.revalidate();
+
+      track.$.$.auth.signedIn({ method: 'oauth', provider });
+      return res.json();
+    } catch (e) {
+      track.$.$.auth.signInFail({ method: 'oauth', provider });
       throw e;
     }
   }
