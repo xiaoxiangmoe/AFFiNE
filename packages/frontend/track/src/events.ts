@@ -109,6 +109,13 @@ type PaymentEvents =
   | 'confirmResumingSubscription';
 // END SECTION
 
+// SECTION: copilot events
+type CopilotEvents =
+  | 'startCopilotChat'
+  | 'addCopilotChatAttachment'
+  | 'startCopilotAction';
+// END SECTION
+
 type UserEvents =
   | GeneralEvents
   | AppEvents
@@ -122,7 +129,9 @@ type UserEvents =
   | ShareEvents
   | AuthEvents
   | AccountEvents
-  | PaymentEvents;
+  | PaymentEvents
+  | CopilotEvents;
+
 interface PageDivision {
   [page: string]: {
     [segment: string]: {
@@ -286,6 +295,17 @@ const PageEvents = {
     },
     sidepanel: {
       property: ['addProperty'],
+    },
+  },
+  copilot: {
+    chat: {
+      $: ['startCopilotChat', 'addCopilotChatAttachment'],
+    },
+    page: {
+      $: ['startCopilotAction'],
+    },
+    edgeless: {
+      $: ['startCopilotAction'],
     },
   },
   // remove when type added
