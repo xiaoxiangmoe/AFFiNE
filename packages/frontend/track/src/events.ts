@@ -111,15 +111,16 @@ type PaymentEvents =
 
 // SECTION: copilot events
 type CopilotEvents =
-  | 'startCopilotChat'
-  | 'resetCopilotChat'
-  | 'retryCopilotChat'
-  | 'failureCopilotChat'
-  | 'addCopilotChatAttachment'
-  | 'startCopilotAction'
-  | 'retryCopilotAction'
-  | 'discordCopilotAction'
-  | 'failureCopilotAction';
+  | 'startChat'
+  | 'resetChat'
+  | 'retryChat'
+  | 'failureChat'
+  | 'addChatAttachment'
+  | 'startAction'
+  | 'retryAction'
+  | 'discordAction'
+  | 'failureAction'
+  | 'finishAction';
 // END SECTION
 
 type UserEvents =
@@ -306,27 +307,29 @@ const PageEvents = {
   copilot: {
     chat: {
       $: [
-        'startCopilotChat',
-        'retryCopilotChat',
-        'resetCopilotChat',
-        'failureCopilotChat',
-        'addCopilotChatAttachment',
+        'startChat',
+        'retryChat',
+        'resetChat',
+        'failureChat',
+        'addChatAttachment',
       ],
     },
     page: {
       $: [
-        'startCopilotAction',
-        'retryCopilotAction',
-        'discordCopilotAction',
-        'failureCopilotAction',
+        'startAction',
+        'retryAction',
+        'discordAction',
+        'failureAction',
+        'finishAction',
       ],
     },
     edgeless: {
       $: [
-        'startCopilotAction',
-        'retryCopilotAction',
-        'discordCopilotAction',
-        'failureCopilotAction',
+        'startAction',
+        'retryAction',
+        'discordAction',
+        'failureAction',
+        'finishAction',
       ],
     },
   },
