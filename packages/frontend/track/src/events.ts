@@ -469,6 +469,12 @@ export type EventArgs = {
   };
   editProperty: { type: string };
   addProperty: { type: string; control: 'at menu' | 'property list' };
+  // copilot
+  startAction: { action: string };
+  retryAction: { action: string };
+  discordAction: { action: string };
+  failureAction: { action: string };
+  finishAction: { action: string };
 };
 
 // for type checking
