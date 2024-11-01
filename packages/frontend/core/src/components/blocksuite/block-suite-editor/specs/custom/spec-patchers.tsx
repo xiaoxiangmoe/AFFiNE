@@ -7,6 +7,9 @@ import {
   toReactNode,
   type useConfirmModal,
 } from '@affine/component';
+import { AttachmentPreviewErrorBoundary } from '@affine/core/components/attachment-viewer/error';
+import { PDFViewerEmbedded } from '@affine/core/components/attachment-viewer/pdf-viewer-embedded';
+import { buildAttachmentProps } from '@affine/core/components/attachment-viewer/utils';
 import type { EditorService } from '@affine/core/modules/editor';
 import { EditorSettingService } from '@affine/core/modules/editor-setting';
 import { resolveLinkToDoc } from '@affine/core/modules/navigation';
@@ -48,6 +51,7 @@ import {
   AFFINE_EMBED_CARD_TOOLBAR_WIDGET,
   AFFINE_FORMAT_BAR_WIDGET,
   AffineSlashMenuWidget,
+  AttachmentEmbedConfigIdentifier,
   DocModeExtension,
   EdgelessRootBlockComponent,
   EmbedLinkedDocBlockComponent,
@@ -60,6 +64,7 @@ import {
   ReferenceNodeConfigExtension,
   ReferenceNodeConfigIdentifier,
 } from '@blocksuite/affine/blocks';
+import { Bound } from '@blocksuite/affine/global/utils';
 import { type BlockSnapshot, Text } from '@blocksuite/affine/store';
 import {
   AIChatBlockSchema,
@@ -619,4 +624,35 @@ export function patchForMobile() {
     },
   };
   return extension;
+}
+
+export function patchForAttachmentEmbedViews(
+  reactToLit: (element: ElementOrFactory) => TemplateResult
+): ExtensionType {
+  return {
+    setup: di => {
+      di.override(AttachmentEmbedConfigIdentifier('pdf'), () => ({
+        name: 'pdf',
+        check: (model, maxFileSize) =>
+          model.type === 'application/pdf' && model.size <= maxFileSize,
+        action: model => {
+          const bound = Bound.deserialize(model.xywh);
+          bound.w = 537 + 24 + 2;
+          bound.h = 759 + 46 + 24 + 2;
+          model.doc.updateBlock(model, {
+            embed: true,
+            style: 'pdf',
+            xywh: bound.serialize(),
+          });
+        },
+        template: (model, _blobUrl) =>
+          // TODO(@fundon): fixme, unable to release pdf worker when switching view
+          reactToLit(
+            <AttachmentPreviewErrorBoundary key={model.id}>
+              <PDFViewerEmbedded {...buildAttachmentProps(model)} />
+            </AttachmentPreviewErrorBoundary>
+          ),
+      }));
+    },
+  };
 }

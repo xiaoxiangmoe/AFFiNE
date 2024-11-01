@@ -1,7 +1,7 @@
+import type { ExtensionType } from '@blocksuite/affine/block-std';
 import {
   BlockFlavourIdentifier,
   BlockServiceIdentifier,
-  type ExtensionType,
   StdIdentifier,
 } from '@blocksuite/affine/block-std';
 import {
