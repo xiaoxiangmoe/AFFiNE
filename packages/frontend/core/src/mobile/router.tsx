@@ -72,13 +72,6 @@ export const topLevelRoutes = [
           ),
       },
       {
-        path: '/oauth/login',
-        lazy: () =>
-          import(
-            /* webpackChunkName: "auth" */ '@affine/core/desktop/pages/auth/oauth-login'
-          ),
-      },
-      {
         path: '/oauth/callback',
         lazy: () =>
           import(
