@@ -1,5 +1,6 @@
 import { OpenInAppPage } from '@affine/core/modules/open-in-app/views/open-in-app-page';
 import { appSchemaUrl, appSchemes } from '@affine/core/utils';
+import { extractLinkSearchParams } from '@affine/core/utils/link';
 import type { GetCurrentUserQuery } from '@affine/graphql';
 import { fetcher, getCurrentUserQuery } from '@affine/graphql';
 import type { LoaderFunction } from 'react-router-dom';
@@ -67,12 +68,7 @@ export const loader: LoaderFunction = async args => {
   const action = args.params.action || '';
 
   try {
-    const { url, ...params } = Array.from(
-      new URL(args.request.url).searchParams.entries()
-    ).reduce(
-      (acc, [k, v]) => ((acc[k] = v), acc),
-      {} as Record<string, string>
-    );
+    const { url, ...params } = extractLinkSearchParams(args.request.url);
     const res =
       (action === 'signin-redirect' &&
         (await fetcher({
