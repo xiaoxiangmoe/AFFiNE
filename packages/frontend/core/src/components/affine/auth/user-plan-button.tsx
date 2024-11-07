@@ -3,23 +3,18 @@ import { useCatchEventCallback } from '@affine/core/components/hooks/use-catch-e
 import { GlobalDialogService } from '@affine/core/modules/dialogs';
 import { SubscriptionPlan } from '@affine/graphql';
 import { useI18n } from '@affine/i18n';
-import { useLiveData, useService, useServices } from '@toeverything/infra';
+import { useLiveData, useService } from '@toeverything/infra';
 import { useEffect } from 'react';
 
-import {
-  ServerConfigService,
-  SubscriptionService,
-} from '../../../modules/cloud';
+import { ServerService, SubscriptionService } from '../../../modules/cloud';
 import * as styles from './style.css';
 
 export const UserPlanButton = () => {
-  const { serverConfigService, subscriptionService } = useServices({
-    ServerConfigService,
-    SubscriptionService,
-  });
+  const serverService = useService(ServerService);
+  const subscriptionService = useService(SubscriptionService);
 
   const hasPayment = useLiveData(
-    serverConfigService.serverConfig.features$.map(r => r?.payment)
+    serverService.server.features$.map(r => r?.payment)
   );
   const plan = useLiveData(
     subscriptionService.subscription.pro$.map(subscription =>
