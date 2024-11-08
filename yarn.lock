@@ -72,7 +72,9 @@ __metadata:
   resolution: "@affine-test/affine-cloud-copilot@workspace:tests/affine-cloud-copilot"
   dependencies:
     "@affine-test/kit": "workspace:*"
+    "@affine/server": "workspace:*"
     "@playwright/test": "npm:=1.48.2"
+    ava: "npm:^6.1.2"
   languageName: unknown
   linkType: soft
 
@@ -748,7 +750,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@affine/server@workspace:packages/backend/server":
+"@affine/server@workspace:*, @affine/server@workspace:packages/backend/server":
   version: 0.0.0-use.local
   resolution: "@affine/server@workspace:packages/backend/server"
   dependencies:
