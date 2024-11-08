@@ -10,7 +10,6 @@ import {
   applyEnvToConfig,
   getAFFiNEConfigModifier,
 } from './fundamentals/config';
-import { enablePlugin } from './plugins';
 
 const PROJECT_CONFIG_PATH = join(fileURLToPath(import.meta.url), '../config');
 async function loadRemote(remoteDir: string, file: string) {
@@ -46,6 +45,7 @@ async function load() {
 
   // 2. generate AFFiNE default config and assign to `globalThis.AFFiNE`
   globalThis.AFFiNE = getAFFiNEConfigModifier();
+  const { enablePlugin } = await import('./plugins/registry');
   globalThis.AFFiNE.use = enablePlugin;
   globalThis.AFFiNE.plugins.use = enablePlugin;
 

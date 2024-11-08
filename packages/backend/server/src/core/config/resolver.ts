@@ -12,7 +12,7 @@ import {
 import { RuntimeConfig, RuntimeConfigType } from '@prisma/client';
 import { GraphQLJSON, GraphQLJSONObject } from 'graphql-scalars';
 
-import { Config, URLHelper } from '../../fundamentals';
+import { Config, getDatasourceUrl, URLHelper } from '../../fundamentals';
 import { Public } from '../auth';
 import { Admin } from '../common';
 import { FeatureType } from '../features';
@@ -261,7 +261,7 @@ export class ServerServiceConfigResolver {
   }
 
   database(): ServerDatabaseConfig {
-    const url = new URL(this.config.database.datasourceUrl);
+    const url = new URL(getDatasourceUrl(this.config));
 
     return {
       host: url.hostname,

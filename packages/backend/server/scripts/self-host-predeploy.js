@@ -10,7 +10,6 @@ const SELF_HOST_CONFIG_DIR = '/root/.affine/config';
  * @type {Array<{ from: string; to?: string, modifier?: (content: string): string }>}
  */
 const configFiles = [
-  { from: './.env.example', to: '.env' },
   { from: './dist/config/affine.js', modifier: configCleaner },
   { from: './dist/config/affine.env.js', modifier: configCleaner },
 ];
@@ -22,8 +21,24 @@ function configCleaner(content) {
   );
 }
 
+const datasource = {
+  user: process.env.DB_USER || 'affine',
+  password: process.env.DB_PASSWORD || '',
+  host: process.env.DB_HOST || 'postgres',
+  port: process.env.DB_PORT || 5432,
+  databaseName: process.env.DB_DATABASE_NAME || 'affine',
+};
+
+function getDatasourceUrl() {
+  return (
+    process.env.DATABASE_URL ||
+    `postgres://${datasource.user}:${datasource.password}@${datasource.host}:${datasource.port}/${datasource.databaseName}`
+  );
+}
+
 function prepare() {
   fs.mkdirSync(SELF_HOST_CONFIG_DIR, { recursive: true });
+  process.env.DATABASE_URL = getDatasourceUrl();
 
   for (const { from, to, modifier } of configFiles) {
     const targetFileName = to ?? path.parse(from).base;
