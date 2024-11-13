@@ -143,7 +143,7 @@ const assertNotWrappedInCodeBlock = (
 
 const checkMDList = (text: string) => {
   const lines = text.split('\n');
-  const listItemRegex = /^( {2})*(-|\*|\+) .+$/;
+  const listItemRegex = /^( {2})*(-|\u2010-\u2015|\*|\+)? .+$/;
   let prevIndent = null;
 
   for (const line of lines) {
@@ -166,7 +166,9 @@ const checkMDList = (text: string) => {
       }
     }
 
-    prevIndent = currentIndent;
+    if (line.trim().startsWith('-')) {
+      prevIndent = currentIndent;
+    }
   }
 
   return true;
@@ -247,6 +249,16 @@ test('should validate markdown list', t => {
   - item 1.1
       - item 1.1.1.1
 `)
+  );
+  t.true(
+    checkMDList(`
+- item 1
+  - item 1.1
+    - item 1.1.1.1
+      item 1.1.1.1 line breaks
+    - item 1.1.1.2
+`),
+    'should allow line breaks'
   );
 });
 
