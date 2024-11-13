@@ -148,9 +148,8 @@ export const useSharingUrl = ({ workspaceId, pageId }: UseSharingUrl) => {
       if (sharingUrl) {
         copyTextToClipboard(sharingUrl)
           .then(success => {
-            if (success) {
-              notify.success({ title: t['Copied link to clipboard']() });
-            }
+            if (!success) return;
+            notify.success({ title: t['Copied link to clipboard']() });
           })
           .catch(err => {
             console.error(err);

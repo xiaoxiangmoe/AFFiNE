@@ -30,9 +30,7 @@ export const copyLinkToBlockStdScopeClipboard = async (
 ) => {
   let success = false;
 
-  if (!clipboard) return success;
-
-  if (clipboardWriteIsSupported) {
+  if (clipboardWriteIsSupported && clipboard) {
     try {
       await clipboard.writeToClipboard(items => {
         items['text/plain'] = text;
