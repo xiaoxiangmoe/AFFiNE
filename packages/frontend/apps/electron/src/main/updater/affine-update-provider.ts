@@ -5,7 +5,6 @@ import { newError } from 'builder-util-runtime';
 import type {
   AppUpdater,
   ResolvedUpdateFileInfo,
-  UpdateFileInfo,
   UpdateInfo,
 } from 'electron-updater';
 import { CancellationToken, Provider } from 'electron-updater';
@@ -14,6 +13,7 @@ import {
   getFileList,
   parseUpdateInfo,
 } from 'electron-updater/out/providers/Provider';
+import { remove } from 'lodash-es';
 
 import type { buildType } from '../config';
 import { isSquirrelBuild } from './utils';
@@ -63,7 +63,7 @@ export class AFFiNEUpdateProvider extends Provider<GithubUpdateInfo> {
     return url;
   }
 
-  async getLatestVersion(): Promise<GithubUpdateInfo> {
+  override async getLatestVersion(): Promise<GithubUpdateInfo> {
     const cancellationToken = new CancellationToken();
 
     const releasesJsonStr = await this.httpRequest(
@@ -113,23 +113,11 @@ export class AFFiNEUpdateProvider extends Provider<GithubUpdateInfo> {
       channelFileUrl
     );
 
-    const files: UpdateFileInfo[] = [];
-
     result.files.forEach(file => {
       const asset = latestRelease.assets.find(({ name }) => name === file.url);
       if (asset) {
         file.url = asset.url;
       }
-
-      // for windows, we need to determine its installer type (nsis or squirrel)
-      if (process.platform === 'win32') {
-        const isSquirrel = isSquirrelBuild();
-        if (isSquirrel && file.url.endsWith('.nsis.exe')) {
-          return;
-        }
-      }
-
-      files.push(file);
     });
 
     if (result.releaseName == null) {
@@ -141,8 +129,19 @@ export class AFFiNEUpdateProvider extends Provider<GithubUpdateInfo> {
       result.releaseNotes = '';
     }
 
+    if (process.platform === 'win32') {
+      // for windows, we need to determine its installer type (nsis or squirrel)
+      // and remove files that are not for the current arch
+      remove(
+        result.files,
+        file =>
+          !file.url.includes(process.arch) ||
+          (isSquirrelBuild() && file.url.includes('squirrel'))
+      );
+    }
+
     return {
-      tag: tag,
+      tag,
       ...result,
     };
   }
