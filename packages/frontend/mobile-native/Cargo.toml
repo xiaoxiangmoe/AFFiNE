@@ -1,0 +1,10 @@
+[package]
+edition = "2021"
+name    = "affine_mobile_native"
+version = "0.0.0"
+
+[lib]
+crate-type = ["cdylib", "staticlib"]
+
+[dependencies]
+affine_native = { path = "../native", features = ["noop"] }

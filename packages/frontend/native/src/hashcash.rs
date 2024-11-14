@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 
 use chrono::{DateTime, Duration, NaiveDateTime, Utc};
-use napi::{bindgen_prelude::AsyncTask, Env, JsBoolean, JsString, Result as NapiResult, Task};
+use napi::{bindgen_prelude::AsyncTask, Env, Result, Task};
 use napi_derive::napi;
 use rand::{
   distributions::{Alphanumeric, Distribution},
@@ -12,7 +12,7 @@ use sha3::{Digest, Sha3_256};
 const SALT_LENGTH: usize = 16;
 
 #[derive(Debug)]
-struct Stamp {
+pub struct Stamp {
   version: String,
   claim: u32,
   ts: String,
@@ -47,13 +47,14 @@ impl Stamp {
       let mut hasher = Sha3_256::new();
       hasher.update(self.format().as_bytes());
       let result = format!("{:x}", hasher.finalize());
-      result[..hex_digits] == String::from_utf8(vec![b'0'; hex_digits]).unwrap()
+      let zeros = vec![b'0'; hex_digits];
+      Ok(&result[..hex_digits]) == std::str::from_utf8(&zeros)
     } else {
       false
     }
   }
 
-  fn format(&self) -> String {
+  pub fn format(&self) -> String {
     format!(
       "{}:{}:{}:{}:{}:{}:{}",
       self.version, self.claim, self.ts, self.resource, self.ext, self.rand, self.counter
@@ -85,11 +86,12 @@ impl Stamp {
         let mut hasher = Sha3_256::new();
         let mut counter = 0;
         let hex_digits = ((bits as f32) / 4.).ceil() as usize;
-        let zeros = String::from_utf8(vec![b'0'; hex_digits]).unwrap();
+        let zeros_vec = vec![b'0'; hex_digits];
+        let zeros = std::str::from_utf8(&zeros_vec);
         loop {
           hasher.update(format!("{}:{:x}", challenge, counter).as_bytes());
           let result = format!("{:x}", hasher.finalize_reset());
-          if result[..hex_digits] == zeros {
+          if Ok(&result[..hex_digits]) == zeros {
             break format!("{:x}", counter);
           };
           counter += 1
@@ -102,7 +104,7 @@ impl Stamp {
 impl TryFrom<&str> for Stamp {
   type Error = String;
 
-  fn try_from(value: &str) -> Result<Self, Self::Error> {
+  fn try_from(value: &str) -> std::result::Result<Self, Self::Error> {
     let stamp_vec = value.split(':').collect::<Vec<&str>>();
     if stamp_vec.len() != 7
       || stamp_vec
@@ -138,9 +140,9 @@ pub struct AsyncVerifyChallengeResponse {
 #[napi]
 impl Task for AsyncVerifyChallengeResponse {
   type Output = bool;
-  type JsValue = JsBoolean;
+  type JsValue = bool;
 
-  fn compute(&mut self) -> NapiResult<Self::Output> {
+  fn compute(&mut self) -> Result<Self::Output> {
     Ok(if let Ok(stamp) = Stamp::try_from(self.response.as_str()) {
       stamp.check(self.bits, &self.resource)
     } else {
@@ -148,8 +150,8 @@ impl Task for AsyncVerifyChallengeResponse {
     })
   }
 
-  fn resolve(&mut self, env: Env, output: bool) -> NapiResult<Self::JsValue> {
-    env.get_boolean(output)
+  fn resolve(&mut self, _: Env, output: bool) -> Result<Self::JsValue> {
+    Ok(output)
   }
 }
 
@@ -174,14 +176,14 @@ pub struct AsyncMintChallengeResponse {
 #[napi]
 impl Task for AsyncMintChallengeResponse {
   type Output = String;
-  type JsValue = JsString;
+  type JsValue = String;
 
-  fn compute(&mut self) -> NapiResult<Self::Output> {
+  fn compute(&mut self) -> Result<Self::Output> {
     Ok(Stamp::mint(self.resource.clone(), self.bits).format())
   }
 
-  fn resolve(&mut self, env: Env, output: String) -> NapiResult<Self::JsValue> {
-    env.create_string(&output)
+  fn resolve(&mut self, _: Env, output: String) -> Result<Self::JsValue> {
+    Ok(output)
   }
 }
 

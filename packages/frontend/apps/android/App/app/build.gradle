@@ -22,6 +22,8 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    ndkVersion "28.0.12433566"
 }
 
 repositories {
@@ -51,4 +53,19 @@ try {
     }
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}
+
+apply plugin: 'org.mozilla.rust-android-gradle.rust-android'
+
+cargo {
+  module  = "../../../../mobile-native"       // Or whatever directory contains your Cargo.toml
+  libname = "affine_mobile_native"          // Or whatever matches Cargo.toml's [package] name.
+  targets = ["arm64", "darwin-aarch64"]
+  pythonCommand = "python3.12"
+}
+
+tasks.whenTaskAdded { task ->
+  if ((task.name == 'javaPreCompileDebug' || task.name == 'javaPreCompileRelease')) {
+    task.dependsOn 'cargoBuild'
+  }
 }
