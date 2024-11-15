@@ -793,6 +793,7 @@ __metadata:
     "@opentelemetry/semantic-conventions": "npm:^1.25.0"
     "@prisma/client": "npm:^5.15.0"
     "@prisma/instrumentation": "npm:^5.15.0"
+    "@slack/web-api": "npm:^7.3.4"
     "@socket.io/redis-adapter": "npm:^8.3.0"
     "@types/cookie-parser": "npm:^1.4.7"
     "@types/express": "npm:^4.17.21"
@@ -819,8 +820,10 @@ __metadata:
     html-validate: "npm:^8.20.1"
     ioredis: "npm:^5.3.2"
     is-mobile: "npm:^5.0.0"
+    jsx-slack: "npm:^6.1.1"
     keyv: "npm:^5.0.0"
     lodash-es: "npm:^4.17.21"
+    marked: "npm:^15.0.0"
     mixpanel: "npm:^0.18.0"
     mustache: "npm:^4.2.0"
     nanoid: "npm:^5.0.7"
@@ -839,6 +842,7 @@ __metadata:
     socket.io: "npm:^4.7.5"
     stripe: "npm:^17.0.0"
     supertest: "npm:^7.0.0"
+    tap-parser: "npm:^18.0.0"
     ts-node: "npm:^10.9.2"
     typescript: "npm:^5.6.3"
     yjs: "patch:yjs@npm%3A13.6.18#~/.yarn/patches/yjs-npm-13.6.18-ad0d5f7c43.patch"
@@ -20044,6 +20048,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"events-to-array@npm:^2.0.3":
+  version: 2.0.3
+  resolution: "events-to-array@npm:2.0.3"
+  checksum: 10/d392eb0013013c3dfa66710a017902760edb2a588f6b1a3f1c92219563ba1c24bcb99c48e3754423a3538ebfd70318c3536d30bfd80c00e7fec77fdd088540d0
+  languageName: node
+  linkType: hard
+
 "events@npm:^3.2.0":
   version: 3.3.0
   resolution: "events@npm:3.3.0"
@@ -31267,6 +31278,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tap-parser@npm:^18.0.0":
+  version: 18.0.0
+  resolution: "tap-parser@npm:18.0.0"
+  dependencies:
+    events-to-array: "npm:^2.0.3"
+    tap-yaml: "npm:4.0.0"
+  bin:
+    tap-parser: bin/cmd.cjs
+  checksum: 10/6e13dc475bfdc880307cc935b9917d43255f7e2b0902d171b7f51b41b029aae9dce5b8683aa48170bb720819b3551d793663c0a11f0660ef78d4a0fe87228ad0
+  languageName: node
+  linkType: hard
+
+"tap-yaml@npm:4.0.0":
+  version: 4.0.0
+  resolution: "tap-yaml@npm:4.0.0"
+  dependencies:
+    yaml: "npm:^2.4.1"
+    yaml-types: "npm:^0.4.0"
+  checksum: 10/21d3a27328aa419bb90249357689446488351d350a4ba56c5b1afce9dfe33f60db49014170ea7d16eb90381d3f9f31b59d9637bda632e55167f33c834eb02171
+  languageName: node
+  linkType: hard
+
 "tapable@npm:^2.0.0, tapable@npm:^2.1.1, tapable@npm:^2.2.0, tapable@npm:^2.2.1":
   version: 2.2.1
   resolution: "tapable@npm:2.2.1"
@@ -33501,6 +33534,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"yaml-types@npm:^0.4.0":
+  version: 0.4.0
+  resolution: "yaml-types@npm:0.4.0"
+  peerDependencies:
+    yaml: ^2.3.0
+  checksum: 10/8a3cd3a0420d5d09981e3e1add46d7482336531e3bdc02192d26caa915c7d0795ad28dd8766e357234d6bfa3a2bd986687f967079e47aecfd4b191250f041cec
+  languageName: node
+  linkType: hard
+
 "yaml@npm:^1.10.0":
   version: 1.10.2
   resolution: "yaml@npm:1.10.2"
@@ -33508,7 +33550,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yaml@npm:^2.3.1, yaml@npm:^2.3.4, yaml@npm:^2.5.1":
+"yaml@npm:^2.3.1, yaml@npm:^2.3.4, yaml@npm:^2.4.1, yaml@npm:^2.5.1":
   version: 2.6.0
   resolution: "yaml@npm:2.6.0"
   bin:
