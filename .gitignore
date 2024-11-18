@@ -81,3 +81,6 @@ apps/web/next-routes.conf
 
 packages/frontend/templates/edgeless
 packages/frontend/core/public/static/templates
+
+/result
+.direnv
