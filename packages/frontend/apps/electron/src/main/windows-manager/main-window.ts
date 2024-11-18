@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 
-import { BrowserWindow, nativeTheme } from 'electron';
+import { app, BrowserWindow, nativeTheme } from 'electron';
 import electronWindowState from 'electron-window-state';
 import { BehaviorSubject } from 'rxjs';
 
@@ -116,11 +116,17 @@ export class MainWindowManager {
       uiSubjects.onFullScreen$.next(mainWindow.isFullScreen());
     });
 
+    app.on('before-quit', () => {
+      this.cleanupWindows();
+    });
+
     mainWindow.on('close', e => {
       // TODO(@pengx17): gracefully close the app, for example, ask user to save unsaved changes
       e.preventDefault();
       if (!isMacOS()) {
         closeAllWindows();
+        this.mainWindowReady = undefined;
+        this.mainWindow$.next(undefined);
       } else {
         // hide window on macOS
         // application quit will be handled by closing the hidden window
