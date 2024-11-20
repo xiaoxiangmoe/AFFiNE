@@ -5,6 +5,10 @@
   pkgs,
   githubSha ? "ffffffffffffffffffffffffffffffffffffffff",
   buildType ? "canary",
+  rustPlatform,
+  cacert,
+  stdenvNoCC,
+  yarn,
 }:
 stdenv.mkDerivation {
   pname = "affine";
@@ -34,6 +38,65 @@ stdenv.mkDerivation {
   src = ./.;
 
   sourceRoot = ".";
+  cargoRoot = ".";
+
+  cargoDeps = rustPlatform.importCargoLock {
+    lockFile = ./Cargo.lock;
+    outputHashes = {
+      "y-octo-0.0.1" = "sha256-ncLAsvSXkG+x4CWdYYDb4IgoqfP1W2Nhe7jqZzc2xsE=";
+    };
+  };
+
+  yarnOfflineCache = stdenv.mkDerivation {
+    name = "yarn-offline-cache";
+    src = ./.;
+    version = "0.0.1";
+
+    nativeBuildInputs = [
+      pkgs.nodePackages.yarn
+    ];
+
+    NODE_EXTRA_CA_CERTS = "${cacert}/etc/ssl/certs/ca-bundle.crt";
+
+    supportedArchitectures = builtins.toJSON {
+      os = [
+        "darwin"
+        "linux"
+      ];
+      cpu = [
+        "arm64"
+        "x64"
+      ];
+      libc = [
+        "glibc"
+        "musl"
+      ];
+    };
+
+    buildPhase = ''
+      runHook preBuild
+
+      export HOME="$NIX_BUILD_TOP"
+
+      mkdir -p "$out/.yarn-cache"
+      yarn config set cacheFolder "$out/.yarn-cache"
+      yarn config set enableTelemetry false
+      yarn config set supportedArchitectures --json "$supportedArchitectures"
+      yarn config set enableGlobalCache false
+      export electron_config_cache="$out/.electron-config-cache"
+      export npm_config_devdir="$out/.gyp"
+
+      yarn install --immutable
+
+      runHook postBuild
+    '';
+
+    dontInstall = true;
+
+    outputHashAlgo = "sha256";
+    outputHash = "sha256-PfGTMETRC87n1nIkRXdQGzQoX3mJHFikNUP1GvlRXNA=";
+    outputHashMode = "recursive";
+  };
 
   nativeBuildInputs = [
     pkgs.nodejs_18
@@ -41,8 +104,9 @@ stdenv.mkDerivation {
     pkgs.cargo
     pkgs.rustc
     pkgs.rsync
-    pkgs.cacert
+    # pkgs.cacert
     pkgs.findutils
+    pkgs.tree
     pkgs.zip # electron-forge need zip
   ];
 
@@ -54,23 +118,38 @@ stdenv.mkDerivation {
     "buildPhase"
     "installPhase"
   ];
-
   buildPhase = ''
-    export HOME=$PWD/.home
-    echo "Building $BUILD_TYPE in commit sha: $GITHUB_SHA"
-    rsync --archive --chmod=u+w $src/{.*,*} .
-    yarn config set enableTelemetry false
+    runHook preBuild
 
-    yarn install --immutable
-    yarn workspace @affine/native build
+    export HOME="$NIX_BUILD_TOP"
+    rsync --archive --chmod=u+w $src/{.*,*} .
+
+    # cargo config
+    mkdir -p .cargo
+    cat $cargoDeps/.cargo/config.toml >> .cargo/config.toml
+    ln -s $cargoDeps cargo-vendor-dir
+
+    # yarn config
+    yarn config set enableTelemetry false
+    yarn config set enableGlobalCache false
+    yarn config set cacheFolder $yarnOfflineCache/.yarn-cache
+    export electron_config_cache="$yarnOfflineCache/.electron-config-cache"
+    export electron_zip_dir="$(echo $electron_config_cache/*)"
+    export npm_config_devdir="$yarnOfflineCache/.gyp"
+
+    # first build
+    yarn install --immutable --immutable-cache
+    CARGO_NET_OFFLINE=true yarn workspace @affine/native build
     SKIP_NX_CACHE=1 yarn workspace @affine/electron generate-assets
 
+    # second build
     yarn config set nmMode classic
     yarn config set nmHoistingLimits workspaces
     find . -name 'node_modules' -type d -prune -exec rm -rf '{}' +
     yarn install --immutable
-
     SKIP_WEB_BUILD=1 SKIP_BUNDLE=1 HOIST_NODE_MODULES=1 yarn workspace @affine/electron make
+
+    runHook postBuild
   '';
   installPhase =
     let

@@ -9759,6 +9759,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@prisma/engines@patch:@prisma/engines@npm%3A5.22.0#~/.yarn/patches/@prisma-engines-npm-5.22.0-168ab25a58.patch":
+  version: 5.22.0
+  resolution: "@prisma/engines@patch:@prisma/engines@npm%3A5.22.0#~/.yarn/patches/@prisma-engines-npm-5.22.0-168ab25a58.patch::version=5.22.0&hash=372d90"
+  dependencies:
+    "@prisma/debug": "npm:5.22.0"
+    "@prisma/engines-version": "npm:5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2"
+    "@prisma/fetch-engine": "npm:5.22.0"
+    "@prisma/get-platform": "npm:5.22.0"
+  checksum: 10/5c0397e7a0d53fd668c68866cf94f8d30ee539d0bf52e94c91dfb72ed5f566ff0ee2a8e4b549e35bd22571f514cbf3d65b61488b542f8bc72f6f3fbd5621e2f6
+  languageName: node
+  linkType: hard
+
 "@prisma/fetch-engine@npm:5.22.0":
   version: 5.22.0
   resolution: "@prisma/fetch-engine@npm:5.22.0"

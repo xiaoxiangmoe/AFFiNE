@@ -1,0 +1,11 @@
+diff --git a/scripts/postinstall.js b/scripts/postinstall.js
+index 3fa2e3ca2ac5ccbf13bbfac8d3f2e20735286510..771061530882102d7c568c9a322bd03bde0dd636 100644
+--- a/scripts/postinstall.js
++++ b/scripts/postinstall.js
+@@ -1,5 +1,5 @@
+ const path = require('path')
+-
++process.exit(0);
+ const postInstallScriptPath = path.join(__dirname, '..', 'dist', 'scripts', 'postinstall.js')
+ const localInstallScriptPath = path.join(__dirname, '..', 'dist', 'scripts', 'localinstall.js')
+ 

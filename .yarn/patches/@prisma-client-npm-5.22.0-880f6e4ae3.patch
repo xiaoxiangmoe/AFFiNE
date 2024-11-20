@@ -1,0 +1,12 @@
+diff --git a/scripts/postinstall.js b/scripts/postinstall.js
+index fec6746c0747118f9c82ae6ebd2aae817c000a48..eeb29529b102c671591c5d5036fa58f9939c5006 100644
+--- a/scripts/postinstall.js
++++ b/scripts/postinstall.js
+@@ -59,6 +59,7 @@ function findPackageRoot(startPath, limit = 10) {
+  *   falls back to the global `prisma` package. If neither options are available, it warns the user to install `prisma` first.
+  */
+ async function main() {
++  return
+   if (process.env.INIT_CWD) {
+     process.chdir(process.env.INIT_CWD) // necessary, because npm chooses __dirname as process.cwd()
+     // in the postinstall hook

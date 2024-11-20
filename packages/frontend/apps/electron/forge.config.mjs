@@ -150,6 +150,7 @@ export default {
       identity: 'Developer ID Application: TOEVERYTHING PTE. LTD.',
       'hardened-runtime': true,
     },
+    electronZipDir: process.env.electron_zip_dir,
     osxNotarize: process.env.APPLE_ID
       ? {
           tool: 'notarytool',
