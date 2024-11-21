@@ -10,9 +10,29 @@
   stdenvNoCC,
   yarn,
   electron,
-  fetchurl
+  fetchurl,
+  copyDesktopItems,
+  makeDesktopItem,
+  makeWrapper,
+  commandLineArgs ? "",
 }:
 let
+  nodeArch =
+    {
+      "x86_64-linux" = "x64";
+      "aarch64-linux" = "arm64";
+      "x86_64-darwin" = "x64";
+      "aarch64-darwin" = "arm64";
+    }
+    .${stdenv.targetPlatform.system};
+  nodePlatformArch =
+    {
+      "x86_64-linux" = "linux-x64";
+      "aarch64-linux" = "linux-arm64";
+      "x86_64-darwin" = "darwin-x64";
+      "aarch64-darwin" = "darwin-arm64";
+    }
+    .${stdenv.targetPlatform.system};
   electronPrebuiltInfo = rec {
     version = "v33.2.0";
     zip = {
@@ -20,10 +40,23 @@ let
         url = "https://github.com/electron/electron/releases/download/v33.2.0/electron-v33.2.0-darwin-arm64.zip";
         sha256 = "b78ec0f21a12effc6830b6ac70a71e226f3898dd1c2449b5230e071211fb4a73";
       };
+      darwin-x64 = {
+        url = "https://github.com/electron/electron/releases/download/v33.2.0/electron-v33.2.0-darwin-x64.zip";
+        sha256 = "08a345c459103334643df9a093c4eab73eb3bd57bc86e75ca46e8e38b94bb2eb";
+      };
+      linux-x64 = {
+        url = "https://github.com/electron/electron/releases/download/v33.2.0/electron-v33.2.0-linux-x64.zip";
+        sha256 = "fc9e2a5f969d0fcf7546eb3299a2450329ba4f05c1baa4f0ed7b269b45e2232b";
+      };
+      linux-arm64 = {
+        url = "https://github.com/electron/electron/releases/download/v33.2.0/electron-v33.2.0-linux-arm64.zip";
+        sha256 = "246064a2f8b29e163c7d999ea1fb98e6a99e4614bb4b07a62f19777965bf19cc";
+      };
     };
   };
-  electronPrebuiltZipDict = {
-    darwin-arm64 = fetchurl electronPrebuiltInfo.zip.darwin-arm64;
+  icon = fetchurl {
+    url = "https://raw.githubusercontent.com/toeverything/AFFiNE/v${electronPrebuiltInfo.version}/packages/frontend/core/public/favicon-192.png";
+    hash = "sha256-smZ5W7fy3TK3bvjwV4i71j2lVmKSZcyhMhcWfPxNnN4=";
   };
   yarnOfflineCache = stdenv.mkDerivation {
     name = "yarn-offline-cache";
@@ -50,7 +83,9 @@ let
         "musl"
       ];
     };
-
+    phases = [
+      "buildPhase"
+    ];
     buildPhase = ''
       runHook preBuild
 
@@ -121,13 +156,15 @@ let
       pkgs.findutils
       pkgs.tree
       pkgs.zip # electron-forge need zip
+      copyDesktopItems
+      makeWrapper
     ];
 
     env = {
       GITHUB_SHA = githubSha;
       BUILD_TYPE = buildType;
     };
-    electronPrebuiltZip = electronPrebuiltZipDict.darwin-arm64;
+    electronPrebuiltZip = fetchurl electronPrebuiltInfo.zip."${nodePlatformArch}";
     phases = [
       "buildPhase"
       "installPhase"
@@ -150,7 +187,8 @@ let
 
       # electron config
       mkdir .electron_zip_dir
-      ln -s $electronPrebuiltZip .electron_zip_dir/electron-v33.2.0-darwin-arm64.zip
+      # ln -s $electronPrebuiltZip .electron_zip_dir/electron-v33.2.0-${nodePlatformArch}.zip
+      cp $electronPrebuiltZip .electron_zip_dir/electron-v33.2.0-${nodePlatformArch}.zip
       export electron_zip_dir=$PWD/.electron_zip_dir
       export ELECTRON_SKIP_BINARY_DOWNLOAD=1
 
@@ -179,15 +217,34 @@ let
         ''
       else if stdenv.targetPlatform.isLinux then
         ''
-          mkdir -p $out/opt
-          mv packages/frontend/apps/electron/out/${buildType}/${productName}-${stdenv.targetPlatform.linuxArch}/${productName} $out/opt
+          mkdir -p $out/lib
+          cd packages/frontend/apps/electron/out/${buildType}/${productName}-linux-${nodeArch}
+          cp -r ./resources/* -t $out/lib/
+          mkdir -p $out/share/doc/affine/
+          cp LICENSE* $out/share/doc/affine/
+          install -Dm644 ${icon} $out/share/pixmaps/affine.png
+          makeWrapper "${electron}/bin/electron" $out/bin/affine \
+            --inherit-argv0 \
+            --add-flags $out/lib/app.asar \
+            --add-flags "\''${NIXOS_OZONE_WL:+\''${WAYLAND_DISPLAY:+--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations}}" \
+            --add-flags ${lib.escapeShellArg commandLineArgs}
         ''
       else
         ''
           echo "Unsupported platform: ${stdenv.targetPlatform.system}"
           exit 1
         '';
-
+    desktopItems = [
+      (makeDesktopItem {
+        name = "affine";
+        desktopName = "AFFiNE";
+        exec = "affine %U";
+        terminal = false;
+        icon = "affine";
+        startupWMClass = "affine";
+        categories = [ "Utility" ];
+      })
+    ];
   };
 in
 affineElectron
