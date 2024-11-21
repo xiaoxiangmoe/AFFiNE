@@ -1,0 +1,25 @@
+diff --git a/packages/backend/server/package.json b/packages/backend/server/package.json
+index b053aa047..b33820841 100644
+--- a/packages/backend/server/package.json
++++ b/packages/backend/server/package.json
+@@ -15,7 +15,7 @@
+     "test:copilot": "ava \"tests/**/copilot-*.spec.ts\"",
+     "test:coverage": "c8 ava --concurrency 1 --serial",
+     "test:copilot:coverage": "c8 ava --timeout=5m \"tests/**/copilot-*.spec.ts\"",
+-    "postinstall": "prisma generate",
++    "do-not-run-postinstall": "prisma generate",
+     "data-migration": "node --loader ts-node/esm/transpile-only.mjs ./src/data/index.ts",
+     "predeploy": "yarn prisma migrate deploy && node --import ./scripts/register.js ./dist/data/index.js run",
+     "predeploy:ts": "yarn prisma migrate deploy && node --loader ts-node/esm/transpile-only.mjs ./src/data/index.ts run"
+diff --git a/packages/frontend/apps/electron/forge.config.mjs b/packages/frontend/apps/electron/forge.config.mjs
+index b9ce47284..b205ffcac 100644
+--- a/packages/frontend/apps/electron/forge.config.mjs
++++ b/packages/frontend/apps/electron/forge.config.mjs
+@@ -143,6 +143,7 @@ const makers = [
+ export default {
+   buildIdentifier: buildType,
+   packagerConfig: {
++    electronZipDir: process.env.electron_zip_dir,
+     name: productName,
+     appBundleId: fromBuildIdentifier(appIdMap),
+     icon: icnsPath,
